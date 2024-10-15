@@ -1,0 +1,48 @@
+services:
+  db:
+    container_name: db
+    image: postgres:latest
+    # networks:
+    #   - app-network
+    # ports:
+    #   - "3000:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: RESTMates
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 40s
+      retries: 5
+
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    #ports:
+    #  - "8080:8080"
+    # networks:
+    #   - app-network
+    environment:
+      - DATASOURCE_URL=jdbc:postgresql://db:5432/restmates
+      - DATASOURCE_USERNAME=postgres
+      - DATASOURCE_PASSWORD=postgres
+      - JWT_SECRET=55c404947fe4332de31479c52cc1df7582804ffcd7896b94efb9828c2fd3e164
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3008:5173"
+    # networks:
+    #   - app-network
+
+# networks:
+#   app-network:
+#     driver: bridge
